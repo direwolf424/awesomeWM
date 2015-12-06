@@ -484,7 +484,7 @@ function get_conky()
 	       keys = clientkeys,
 	       buttons = clientbuttons } },
 	       -- Set vlc to always map on tags number 2 of screen 1.
-	       { rule = { class = "vlc" },
+          { rule = { class = "Vlc" },
 	       properties = { tag = tags[1][2] } },
           -- Set chrome on tag number 1 of screen 2.
           { rule = { class = "google-chrome" },
