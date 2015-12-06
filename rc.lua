@@ -54,20 +54,15 @@ awful.util.spawn_with_shell("run_once vlc")
 awful.util.spawn_with_shell("run_once google-chrome-stable")
 awful.util.spawn_with_shell("run_once synapse")
 awful.util.spawn_with_shell("run_once hdd")
----run_once("unclutter")
----run_once("conkyrc")
----run_once("terminator")
----run_once("google-chrome-stable")
----run_once("synapse")
----}}}
+--}}}
 
 -- {{{ Variable definitions
 -- Themes define colours, icons, font and wallpapers.
 beautiful.init("/home/direwolf/.config/awesome/themes/steamburn/theme.lua")
 
 -- This is used later as the default terminal and editor to run.
-terminal = "xterm"
-terminal1= "terminator"
+--terminal = "xterm"
+terminal= "terminator"
 editor = os.getenv("EDITOR") or "nano"
 editor_cmd = terminal .. " -e " .. editor
 
@@ -157,14 +152,14 @@ function get_conky()
 		  tags = {}
 		  for s = 1, screen.count() do
 		     -- Each screen has its own  
-		     tags[s] = awful.tag({ 'web','video','terminal','coding','apps','files','docs','extra',9 }, s, layouts[1])
+		     tags[s] = awful.tag({ 'web','video','terminal','coding','apps','files','docs','extra','irc' }, s, layouts[1])
 		  end
 		  -- }}}
 
 		  -- {{{ Menu
 		  -- Create a laucher widget and a main menu
 		  myawesomemenu = {
-		     { "manual", terminal .. " -e man awesome" },
+		     { "manual", terminal .. " -e 'man awesome'" },
 		     { "edit config", editor_cmd .. " " .. awesome.conffile },
 		     { "restart", awesome.restart },
 		     { "quit", awesome.quit }
@@ -172,11 +167,10 @@ function get_conky()
 		  myapplications = {
 		     { "vlc" ,terminal .. " -e vlc"},
 		     { "chrome" , terminal .. " -e google-chrome-stable" },
-		     { "skype" , terminal .. "-e skype" },
-		     { "Terminator" , terminal .. " -e terminator"}
+		     { "skype" , terminal .. "-e skype" }
 		  }
 		  mymainmenu = awful.menu({ items = { { "awesome", myawesomemenu, beautiful.awesome_icon },
-		  { "open terminal", terminal1 },
+		  { "open terminal", terminal },
 		  { "apps",myapplications, beautiful.awesome_icon }
 	       }
 	    })
@@ -333,7 +327,6 @@ function get_conky()
 	    awful.key({ modkey,           }, "Left",   awful.tag.viewprev       ),
 	    awful.key({ modkey,           }, "Right",  awful.tag.viewnext       ),
 	    awful.key({ modkey,           }, "Escape", awful.tag.history.restore),
-
 	    awful.key({ modkey,           }, "j",
 	    function ()
 	       awful.client.focus.byidx( 1)
@@ -361,7 +354,7 @@ function get_conky()
 	    end),
 
 	    -- Standard program
-	    awful.key({ modkey,           }, "Return", function () awful.util.spawn(terminal1) end),
+	    awful.key({ modkey,           }, "Return", function () awful.util.spawn(terminal) end),
 	    awful.key({ modkey, "Control" }, "r", awesome.restart),
 	    awful.key({ modkey, "Shift"   }, "q", awesome.quit),
 
@@ -389,9 +382,8 @@ function get_conky()
 	    end),
 	    -- Menubar
 	    --awful.key({ modkey }, "p", function() menubar.show() end),
-	    awful.key({ modkey }, "F6" , function() io.popen("xbacklight -inc 3") end ),
-	    awful.key({ modkey }, "F5" , function() io.popen("xbacklight -dec 3") end),
-	    --awful.key({ } ,"XF86AudioPlay" , awful.util.spawn_with_shell("controlvlc_socket.sh pause") ),
+	    awful.key({ }, "XF86MonBrightnessUp" , function() io.popen("xbacklight -inc 3") end ),
+	    awful.key({ }, "XF86MonBrightnessDown" , function() io.popen("xbacklight -dec 3") end),
 	    awful.key({ } ,"XF86AudioPlay" ,function() io.popen("controlvlc_socket.sh pause") end),
 	    awful.key({ } ,"XF86AudioPrev" ,function() io.popen("controlvlc_socket.sh prev") end),
 	    awful.key({ } ,"XF86AudioNext" ,function() io.popen("controlvlc_socket.sh next") end),
@@ -491,15 +483,12 @@ function get_conky()
 	       raise = true,
 	       keys = clientkeys,
 	       buttons = clientbuttons } },
-	       { rule = { class = "MPlayer" },
-	       properties = { floating = true } },
-	       { rule = { class = "pinentry" },
-	       properties = { floating = true } },
-	       { rule = { class = "gimp" },
-	       properties = { floating = true } },
 	       -- Set vlc to always map on tags number 2 of screen 1.
-	       { rule = { class = "VLC media player" },
-	       properties = { tag = tags[1][2] } }
+	       { rule = { class = "vlc" },
+	       properties = { tag = tags[1][2] } },
+          -- Set chrome on tag number 1 of screen 2.
+          { rule = { class = "google-chrome" },
+          properties = { tag = tags[1][1] } }
 	       -- Set Firefox to always map on tag number 2 of screen 1
 	       --{ rule = { class = "Firefox" },  properties = {tag = tags[1][4]}}
 	    }
