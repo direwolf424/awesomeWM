@@ -63,8 +63,8 @@ end
 
 
 -- {{{ Variable definitions
--- Themes define colours, icons, font and wallpapers.
-beautiful.init("/home/direwolf/.config/awesome/themes/steamburn/theme.lua")
+--Themes define colours, icons, font and wallpapers.
+beautiful.init("/home/direwolf/.config/awesome/themes/blackburn/theme.lua")
 
 -- This is used later as the default terminal and editor to run.
 terminal= "terminator"
@@ -164,15 +164,15 @@ function get_conky()
                   -- {{{ Menu
                   -- Create a laucher widget and a main menu
                   myawesomemenu = {
-                     { "manual", terminal .. " -e 'man awesome'" },
-                     { "edit config", terminal .. " -e vim " .. awesome.conffile },
+                     { "manual", terminal .. " -x man awesome" },
+                     { "edit config", terminal .. " -x vim " .. awesome.conffile },
                      { "restart", awesome.restart },
                      { "quit", awesome.quit }
                   }
                   myapplications = {
-                     { "vlc" ,terminal .. " -e 'vlc'"},
-                     { "chrome" , terminal .. " -e 'google-chrome-stable'" },
-                     { "skype" , terminal .. "-e 'skype'" }
+                     { "vlc" ,terminal .. " -x vlc"},
+                     { "chrome" , terminal .. " -x google-chrome-stable" },
+                     { "skype" , terminal .. "-x skype" }
                   }
                   mymainmenu = awful.menu({ items = { { "awesome", myawesomemenu, beautiful.awesome_icon },
                   { "open terminal", terminal },
@@ -224,14 +224,17 @@ function get_conky()
                speed_monitor = timer({timeout = 30})
                speed_monitor:connect_signal("timeout",network_speed)
                speed_monitor:start()
-               -- Create a textclock widget
-               mytextclock = awful.widget.textclock()
                -- create a battery widget
                mybattery=wibox.widget.textbox()
                vicious.register(mybattery,vicious.widgets.bat,"Battery:$2%",30,"BAT0")
                -- use widget({ type = "textbox" }) for awesome < 3.5
                separator = wibox.widget.textbox()
                separator:set_text(" :: ")
+
+               -- clock widget using obvious
+               obvious.clock.set_editor("terminator -x gvim")
+               obvious.clock.set_shortformat("%a %r")
+               obvious.clock.set_longformat(function () return "%d %b %Y" end)
 
                -- Create a wibox for each screen and add it
                mywibox = {}
@@ -306,7 +309,9 @@ function get_conky()
 
                   -- Widgets that are aligned to the left
                   local left_layout = wibox.layout.fixed.horizontal()
+                  left_layout:add(mylauncher)
                   left_layout:add(mytaglist[s])
+                  left_layout:add(mypromptbox[s])
                   left_layout:add(separator)
 
                   -- Widgets that are aligned to the right
@@ -317,11 +322,12 @@ function get_conky()
                   right_layout:add(separator)	
                   right_layout:add(netwidget)
                   right_layout:add(separator)
-                  right_layout:add(mytextclock)
+                  right_layout:add(obvious.clock())
                   right_layout:add(separator)
                   --right_layout:add(obvious.clock())
-                  right_layout:add(separator)
+                  --right_layout:add(separator)
                   right_layout:add(obvious.battery())
+                  right_layout:add(mylayoutbox[s])
                   -- Now bring it all together (with the tasklist in the middle)
                   local layout = wibox.layout.align.horizontal()
                   layout:set_left(left_layout)
@@ -389,18 +395,7 @@ function get_conky()
                ---awful.key({XF86Calculator},function () io.popen("galculator") end ),
                awful.key({ modkey, "Control" }, "n", awful.client.restore),
 
-               -- Prompt
-               awful.key({ modkey },            "r",     function () io.popen("synapse&") end),
-
-               awful.key({ modkey }, "x",
-               function ()
-                  awful.prompt.run({ prompt = "Run Lua code: " },
-                  mypromptbox[mouse.screen].widget,
-                  awful.util.eval, nil,
-                  awful.util.getdir("cache") .. "/history_eval")
-               end),
                -- Menubar
-               --awful.key({ modkey }, "p", function() menubar.show() end),
                awful.key({ }, "XF86MonBrightnessUp" , function() io.popen("xbacklight -inc 3") end ),
                awful.key({ }, "XF86MonBrightnessDown" , function() io.popen("xbacklight -dec 3") end),
                awful.key({ } ,"XF86AudioPlay" ,function() io.popen("controlvlc_socket.sh pause") end),
