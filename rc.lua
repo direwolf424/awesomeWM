@@ -55,13 +55,16 @@ awful.util.spawn_with_shell("run_once google-chrome-stable")
 awful.util.spawn_with_shell("run_once synapse")
 awful.util.spawn_with_shell("run_once hdd")
 --}}}
+local function trim(s)              -- this function is used to strip off contents from the string whuch is read from a file
+	       return s:find'^%s*$' and '' or s:match'^%s*(.*%S)'
+	    end
+
 
 -- {{{ Variable definitions
 -- Themes define colours, icons, font and wallpapers.
 beautiful.init("/home/direwolf/.config/awesome/themes/steamburn/theme.lua")
 
 -- This is used later as the default terminal and editor to run.
---terminal = "xterm"
 terminal= "terminator"
 editor = os.getenv("EDITOR") or "nano"
 editor_cmd = terminal .. " -e " .. editor
@@ -152,7 +155,7 @@ function get_conky()
 		  tags = {}
 		  for s = 1, screen.count() do
 		     -- Each screen has its own  
-		     tags[s] = awful.tag({ 'web','video','terminal','coding','apps','files','docs','extra','irc' }, s, layouts[1])
+		     tags[s] = awful.tag({ 'web','video','terminal','coding','apps','files','docs','extra','irc' }, s, layouts[2])
 		  end
 		  -- }}}
 
@@ -160,14 +163,14 @@ function get_conky()
 		  -- Create a laucher widget and a main menu
 		  myawesomemenu = {
 		     { "manual", terminal .. " -e 'man awesome'" },
-		     { "edit config", editor_cmd .. " " .. awesome.conffile },
+		     { "edit config", terminal .. " -e vim " .. awesome.conffile },
 		     { "restart", awesome.restart },
 		     { "quit", awesome.quit }
 		  }
 		  myapplications = {
-		     { "vlc" ,terminal .. " -e vlc"},
-		     { "chrome" , terminal .. " -e google-chrome-stable" },
-		     { "skype" , terminal .. "-e skype" }
+		     { "vlc" ,terminal .. " -e 'vlc'"},
+		     { "chrome" , terminal .. " -e 'google-chrome-stable'" },
+		     { "skype" , terminal .. "-e 'skype'" }
 		  }
 		  mymainmenu = awful.menu({ items = { { "awesome", myawesomemenu, beautiful.awesome_icon },
 		  { "open terminal", terminal },
@@ -200,8 +203,25 @@ function get_conky()
 	    --  Network usage widget
 	    netwidget = wibox.widget.textbox()
 	    -- Register widget
-	    vicious.register(netwidget, vicious.widgets.net, '<span color="#CC9393">${wlp3s0 down_kb}</span> <span color="#7F9F7F">${wlp3s0 up_kb}</span>', 3)
-	    -- Create a textclock widget
+       local function network_speed()
+
+       local wifi = assert(io.open('/sys/class/net/wlp3s0/operstate',"r"))
+       local ethernet = assert(io.open('/sys/class/net/enp4s0f2/operstate',"r"))
+       local wifi_status = trim(wifi:read("*all"))
+       local ethernet_status = trim(ethernet:read("*all"))
+		 if wifi_status == 'up' then 
+       vicious.register(netwidget, vicious.widgets.net, '<span color="#CC9393">${wlp3s0 down_kb}</span> <span color="#7F9F7F">${wlp3s0 up_kb}</span>', 3)
+       elseif ethernet_status == 'up' then 
+      vicious.register(netwidget, vicious.widgets.net, '<span color="#CC9393">${enp4s0f2 down_kb}</span> <span color="#7F9F7F">${enp4s0f2 up_kb}</span>', 3)
+   else
+      vicious.register(netwidget,vicious.widgets.net,'all dwn',3)
+   end
+   end
+
+   speed_monitor = timer({timeout = 30})
+   speed_monitor:connect_signal("timeout",network_speed)
+   speed_monitor:start()
+      -- Create a textclock widget
 	    mytextclock = awful.widget.textclock()
 	    -- create a battery widget
 	    mybattery=wibox.widget.textbox()
@@ -324,6 +344,7 @@ function get_conky()
 
 	    -- {{{ Key bindings
 	    globalkeys = awful.util.table.join(
+       awful.key({ }, "Print", function () awful.util.spawn("scrot -e 'mv $f ~/screenshots/ 2>/dev/null'") end),
 	    awful.key({ modkey,           }, "Left",   awful.tag.viewprev       ),
 	    awful.key({ modkey,           }, "Right",  awful.tag.viewnext       ),
 	    awful.key({ modkey,           }, "Escape", awful.tag.history.restore),
@@ -570,16 +591,13 @@ function get_conky()
 	       end
 	    end)
 
-	    client.connect_signal("focus", function(c) c.border_color = beautiful.border_focus end)
+	    client.connect_signal("focus", function(c) c.border_color = beautiful.border_focus c.opacity=1 end)
+	    client.connect_signal("unfocus", function(c) c.border_color = beautiful.border_normal c.opacity=0.7 end)
 
 	    -- battery warning
 	    -- created by bpdp
 
-	    local function trim(s)
-	       return s:find'^%s*$' and '' or s:match'^%s*(.*%S)'
-	    end
-
-	    local function bat_notification()
+	    	    local function bat_notification()
 
 	       local f_capacity = assert(io.open("/sys/class/power_supply/BAT0/capacity", "r"))
 	       local f_status = assert(io.open("/sys/class/power_supply/BAT0/status", "r"))
@@ -609,7 +627,7 @@ function get_conky()
 	    end
 	 end
 
-	 battimer = timer({timeout = 60})
+	 battimer = timer({timeout = 60})               -- it is a timer function which excutes periodically 
 	 battimer:connect_signal("timeout", bat_notification)
 	 battimer:start()
 
