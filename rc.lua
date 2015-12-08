@@ -484,13 +484,20 @@ function get_conky()
 	       keys = clientkeys,
 	       buttons = clientbuttons } },
 	       -- Set vlc to always map on tags number 2 of screen 1.
+          -- For taking out the class name of any application use command xprop 
           { rule = { class = "Vlc" },
 	       properties = { tag = tags[1][2] } },
-          -- Set chrome on tag number 1 of screen 2.
+          -- Set chrome on tag number 1 of screen 1.
           { rule = { class = "google-chrome" },
-          properties = { tag = tags[1][1] } }
-	       -- Set Firefox to always map on tag number 2 of screen 1
-	       --{ rule = { class = "Firefox" },  properties = {tag = tags[1][4]}}
+          properties = { tag = tags[1][1] } },
+          { rule = { class = "konversation" },
+          properties = { tag = tags[1][9] } },
+          { rule = { class = "Linuxdcpp" },
+          properties = { tag = tags[1][5] } },
+          { rule = { class = "Firefox" },
+          properties = { tag = tags[2][1] } },
+          { rule = { class = "Vmware" },
+          properties = { tag = tags[1][8] } },
 	    }
 	    -- }}}
 
